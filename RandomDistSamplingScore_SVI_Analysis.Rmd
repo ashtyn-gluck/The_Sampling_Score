@@ -1,0 +1,57 @@
+---
+title: "RandomDistSamplingScore_SVI_Analysis"
+author: "Ashtyn Gluck"
+date: "2026-10-24"
+output: html_document
+---
+
+```{r}
+library(here)
+library(readr)
+
+# ---- USER SETTINGS ----
+data_file <- here("Data", "All_SamplingScores", "Watershed_SupplementaryInformation_Final.csv")
+# -----------------------
+
+if (!file.exists(data_file)) {
+  stop("Data file not found. See the README for where to download it: ", data_file)
+}
+
+random_samples <- read_csv(data_file)
+```
+
+```{r}
+SVI_quartiles <- random_samples %>% mutate(quartile = cut(
+      OverallSVI_ArealInterpolated,
+      breaks = seq(0, 1, by = 0.25),
+      labels = c(
+        "Low: (0.0–0.25)",
+        "Low - Medium: (0.25-0.5)",
+        "Medium - High: (0.5-0.75)",
+        "High: (0.75-1.0)"
+      ),
+      include.lowest = TRUE
+    ))
+```
+
+```{r}
+SVI_quartiles$svi_binary <- factor(
+  ifelse(Overall_SVI_samplingscore$Overall_SVI_Interpolated <= 0.5, "Lower vulnerability", "Higher vulnerability"),
+  levels = c("Lower vulnerability", "Higher vulnerability"),
+  ordered = TRUE
+)
+
+wilcox.test(Sample_Score ~ svi_binary, data = Overall_SVI_samplingscore, alternative = "greater")
+```
+
+```{r}
+library(DescTools)
+jt_result <- JonckheereTerpstraTest(
+  x = quartiles$Sample_Score,
+  g = quartiles$quartiles_ordered,
+  alternative = "decreasing"
+)
+
+print(jt_result)
+```
+

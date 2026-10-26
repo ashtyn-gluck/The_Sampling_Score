@@ -1,0 +1,31 @@
+---
+title: "WilcoxonRankSumTest_RandomDistSamplingScore_BB_NonBB"
+author: "Ashtyn Gluck"
+date: "2026-10-24"
+output: html_document
+---
+
+```{r}
+library(here)
+library(readr)
+
+# ---- USER SETTINGS ----
+data_file <- here("Data", "All_SamplingScores", "Watershed_SupplementaryInformation_Final.csv")
+# -----------------------
+
+if (!file.exists(data_file)) {
+  stop("Data file not found. See the README for where to download it: ", data_file)
+}
+
+random_samples <- read_csv(data_file)
+```
+
+```{r}
+shapiro.test(random_samples$SamplingScore_RandomDistribution)
+```
+The p-value is below 0.05 indicating the data deviates from a normal distribution. Thus a non-parametric test must be used.
+
+```{r}
+BB_NonBB_SamplingScore_wilcoxon <- wilcox.test(SamplingScore_RandomDistribution ~ BB_or_NonBB, data = random_samples, alternative = "less")
+BB_NonBB_SamplingScore_wilcoxon
+```
